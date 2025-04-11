@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"log"
 	"maps"
 	"os"
@@ -83,8 +84,16 @@ func main() {
 	}()
 	defer rg.Guard(&err)
 
+	var (
+		optConfig string
+	)
+
+	flag.StringVar(&optConfig, "conf", "config.json", "config file")
+	flag.Parse()
+	log.Printf("loading config from %s", optConfig)
+
 	var opts Options
-	buf := rg.Must(os.ReadFile("config.json"))
+	buf := rg.Must(os.ReadFile(optConfig))
 	rg.Must0(json.Unmarshal(buf, &opts))
 	rg.Must0(defaults.Set(&opts))
 	rg.Must0(validator.New().Struct(opts))
