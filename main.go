@@ -5,9 +5,7 @@ import (
 	"errors"
 	"flag"
 	"log"
-	"maps"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -59,18 +57,9 @@ func nameFroCertificate(crt *x509.Certificate) string {
 			shortest = name
 		}
 	}
-	prefixes := make(map[string]struct{})
-	for _, name := range names {
-		if strings.HasSuffix(name, shortest) {
-			name = strings.TrimSuffix(name, shortest)
-		}
-		if strings.HasPrefix(name, "*.") {
-			name = strings.TrimPrefix(name, "*.")
-		}
-		name = strings.ReplaceAll(name, ".", "-")
-		prefixes[name] = struct{}{}
-	}
-	return strings.Join(slices.Collect(maps.Keys(prefixes)), "-") + "-" + shortest
+	shortest = strings.TrimPrefix(shortest,"*.")
+	shortest = strings.ReplaceAll(shortest, ".", "-")
+	return shortest + "-" + crt.NotAfter.Format("20060102150405")
 }
 
 func main() {
@@ -125,7 +114,7 @@ func main() {
 		var crtId int64
 
 		for _, existingCrt := range existingCrtList {
-			if existingCrt.SerialNo != nil && *existingCrt.SerialNo == crt.SerialNumber.String() {
+			if existingCrt.SerialNo != nil && *existingCrt.SerialNo == crt.SerialNumber.Text(16) {
 				crtId = *existingCrt.CertificateId
 				log.Printf("certificate %d already exists, skip uploading", crtId)
 				goto crtFound
