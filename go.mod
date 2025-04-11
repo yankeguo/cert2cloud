@@ -4,6 +4,7 @@ go 1.24.2
 
 require (
 	github.com/alibabacloud-go/cas-20200407/v3 v3.0.4
+	github.com/alibabacloud-go/cdn-20180510/v6 v6.0.0
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.7
 	github.com/alibabacloud-go/tea v1.3.8
 	github.com/creasty/defaults v1.8.0
