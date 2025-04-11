@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"log"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
@@ -57,7 +58,7 @@ func nameFroCertificate(crt *x509.Certificate) string {
 			shortest = name
 		}
 	}
-	shortest = strings.TrimPrefix(shortest,"*.")
+	shortest = strings.TrimPrefix(shortest, "*.")
 	shortest = strings.ReplaceAll(shortest, ".", "-")
 	return shortest + "-" + crt.NotAfter.Format("20060102150405")
 }
@@ -92,6 +93,11 @@ func main() {
 
 	crt := rg.Must(x509.ReadCertificateFromPem(crtPEM))
 
+	if crt.SerialNumber == nil {
+		err = errors.New("cert serial number is nil")
+		return
+	}
+
 	if time.Now().After(crt.NotAfter) {
 		err = errors.New("cert is expired")
 		return
@@ -114,7 +120,14 @@ func main() {
 		var crtId int64
 
 		for _, existingCrt := range existingCrtList {
-			if existingCrt.SerialNo != nil && *existingCrt.SerialNo == crt.SerialNumber.Text(16) {
+			if existingCrt.SerialNo == nil || existingCrt.CertificateId == nil {
+				continue
+			}
+
+			existingSerial := big.NewInt(0)
+			existingSerial.SetString(*existingCrt.SerialNo, 16)
+
+			if existingSerial.Cmp(crt.SerialNumber) == 0 {
 				crtId = *existingCrt.CertificateId
 				log.Printf("certificate %d already exists, skip uploading", crtId)
 				goto crtFound
