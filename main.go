@@ -165,9 +165,10 @@ func main() {
 
 			if !match {
 				rg.Must(cdnClient.SetCdnDomainSSLCertificate(&cdn20180510.SetCdnDomainSSLCertificateRequest{
-					DomainName: tea.String(cdnDomain),
-					CertType:   tea.String("cas"),
-					CertId:     tea.Int64(crtId),
+					DomainName:  tea.String(cdnDomain),
+					CertType:    tea.String("cas"),
+					CertId:      tea.Int64(crtId),
+					SSLProtocol: tea.String("on"),
 				}))
 				log.Printf("certificate %d bound to domain %s", crtId, cdnDomain)
 			}
