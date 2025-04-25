@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.0.4 - 2025-04-25
+#### Bug Fixes
+- set ssl protocol to on - (f589e08) - GUO YANKE
+
+- - -
+
 ## v0.0.3 - 2025-04-11
 #### Bug Fixes
 - analyze serial no with big.Int - (46bed28) - GUO YANKE
