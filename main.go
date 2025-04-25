@@ -117,7 +117,10 @@ func main() {
 			existingCrtList = res.Body.CertificateOrderList
 		}
 
-		var crtId int64
+		var (
+			crtId   int64
+			crtName string
+		)
 
 		for _, existingCrt := range existingCrtList {
 			if existingCrt.SerialNo == nil || existingCrt.CertificateId == nil {
@@ -129,14 +132,16 @@ func main() {
 
 			if existingSerial.Cmp(crt.SerialNumber) == 0 {
 				crtId = *existingCrt.CertificateId
+				crtName = *existingCrt.Name
 				log.Printf("certificate %d already exists, skip uploading", crtId)
 				goto crtFound
 			}
 		}
 
 		{
+			crtName = nameFroCertificate(crt)
 			res := rg.Must(casClient.UploadUserCertificate(&cas20200407.UploadUserCertificateRequest{
-				Name: tea.String(nameFroCertificate(crt)),
+				Name: tea.String(crtName),
 				Cert: tea.String(string(crtPEM)),
 				Key:  tea.String(string(keyPEM)),
 			}))
@@ -168,6 +173,7 @@ func main() {
 					DomainName:  tea.String(cdnDomain),
 					CertType:    tea.String("cas"),
 					CertId:      tea.Int64(crtId),
+					CertName:    tea.String(crtName),
 					SSLProtocol: tea.String("on"),
 				}))
 				log.Printf("certificate %d bound to domain %s", crtId, cdnDomain)
