@@ -4,6 +4,7 @@ import (
 	"maps"
 	"slices"
 	"strings"
+	"time"
 )
 
 func cleanJoined(vals []string) string {
@@ -22,4 +23,11 @@ func cleanJoinedPtr(vals []*string) string {
 		dVals = append(dVals, *val)
 	}
 	return cleanJoined(dVals)
+}
+
+func timeDiff(t1, t2 time.Time) time.Duration {
+	if t1.After(t2) {
+		return t1.Sub(t2)
+	}
+	return t2.Sub(t1)
 }

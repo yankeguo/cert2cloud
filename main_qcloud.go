@@ -33,7 +33,16 @@ func updateQcloud(certOpts *CertOptions, qcloudOpts *QcloudOptions) (err error) 
 		res := rg.Must(client.DescribeCertificates(req))
 
 		for _, item := range res.Response.Certificates {
-			if *item.Alias == localCertName {
+			var (
+				end  time.Time
+				err1 error
+			)
+			if end, err1 = time.Parse(time.DateTime, *item.CertEndTime); err1 != nil {
+				// ignore invalid date
+				continue
+			}
+			if localDomainMark == cleanJoinedPtr(item.SubjectAltName) &&
+				timeDiff(end, localCert.NotAfter) < time.Hour*48 {
 				cloudCertID = *item.CertificateId
 				log.Println("Found existing certificate:", localCertName, "ID:", cloudCertID)
 				break
