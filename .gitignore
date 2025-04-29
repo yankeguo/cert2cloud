@@ -28,3 +28,6 @@ go.work.sum
 /config.json
 /tls.crt
 /tls.key
+
+# binary
+/cert2cloud
