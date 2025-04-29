@@ -47,7 +47,7 @@ func (opts *CertOptions) CreateCertificate() (cert *x509.Certificate, name strin
 		return
 	}
 
-	name = opts.NamePrefix + "-" + cert.NotAfter.Format("20060102150405")
+	name = fmt.Sprintf("%s-%d", opts.NamePrefix, cert.NotAfter.Unix())
 	return
 }
 
