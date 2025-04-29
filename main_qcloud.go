@@ -33,16 +33,15 @@ func updateQcloud(certOpts *CertOptions, qcloudOpts *QcloudOptions) (err error) 
 		res := rg.Must(client.DescribeCertificates(req))
 
 		for _, item := range res.Response.Certificates {
-			var (
-				end  time.Time
-				err1 error
-			)
-			if end, err1 = time.Parse(time.DateTime, *item.CertEndTime); err1 != nil {
+			endTime, err1 := time.Parse(time.DateTime, *item.CertEndTime)
+
+			if err1 != nil {
 				// ignore invalid date
 				continue
 			}
+
 			if localDomainMark == cleanJoinedPtr(item.SubjectAltName) &&
-				timeDiff(end, localCert.NotAfter) < time.Hour*48 {
+				timeDiff(endTime, localCert.NotAfter) < time.Hour*48 {
 				cloudCertID = *item.CertificateId
 				log.Println("Found existing certificate:", localCertName, "ID:", cloudCertID)
 				break
@@ -54,19 +53,20 @@ func updateQcloud(certOpts *CertOptions, qcloudOpts *QcloudOptions) (err error) 
 				// ignoring certificate it-self
 				continue
 			}
+
 			if localDomainMark != cleanJoinedPtr(item.SubjectAltName) {
 				// ignore mismatched domains
 				continue
 			}
-			var (
-				end  time.Time
-				err1 error
-			)
-			if end, err1 = time.Parse(time.DateTime, *item.CertEndTime); err1 != nil {
+
+			endTime, err1 := time.Parse(time.DateTime, *item.CertEndTime)
+
+			if err1 != nil {
 				// ignore invalid date
 				continue
 			}
-			if end.After(localCert.NotAfter) {
+
+			if endTime.After(localCert.NotAfter) {
 				// ignore newer certificate
 				continue
 			}
@@ -95,6 +95,13 @@ func updateQcloud(certOpts *CertOptions, qcloudOpts *QcloudOptions) (err error) 
 		req.OldCertificateId = common.StringPtr(expiringCertID)
 		req.ResourceTypes = common.StringPtrs(qcloudOpts.ResourceTypes)
 		req.CertificateId = common.StringPtr(cloudCertID)
+
+		for product, regions := range qcloudOpts.ResourceRegions {
+			req.ResourceTypesRegions = append(req.ResourceTypesRegions, &ssl.ResourceTypeRegions{
+				ResourceType: common.StringPtr(product),
+				Regions:      common.StringPtrs(regions),
+			})
+		}
 
 		for {
 			res := rg.Must(client.UpdateCertificateInstance(req))

@@ -7,11 +7,12 @@ import (
 )
 
 type QcloudOptions struct {
-	SecretID      string   `json:"secret_id"`
-	SecretIDFile  string   `json:"secret_id_file"`
-	SecretKey     string   `json:"secret_key"`
-	SecretKeyFile string   `json:"secret_key_file"`
-	ResourceTypes []string `json:"resource_types"`
+	SecretID        string              `json:"secret_id"`
+	SecretIDFile    string              `json:"secret_id_file"`
+	SecretKey       string              `json:"secret_key"`
+	SecretKeyFile   string              `json:"secret_key_file"`
+	ResourceTypes   []string            `json:"resource_types"`
+	ResourceRegions map[string][]string `json:"resource_regions"`
 }
 
 func (opts *QcloudOptions) Validate() {
