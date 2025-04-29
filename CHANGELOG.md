@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.1.0 - 2025-04-29
+#### Features
+- complete date upload - (9922f03) - GUO YANKE
+#### Refactoring
+- refine structure - (c136f66) - GUO YANKE
+- update fields and add support for qcloud - (0fd0ec6) - GUO YANKE
+
+- - -
+
 ## v0.0.5 - 2025-04-25
 #### Bug Fixes
 - set ssl protocol to on - (b5ebd78) - GUO YANKE
