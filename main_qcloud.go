@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	qcloud_errors "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	ssl "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl/v20191205"
 	"github.com/yankeguo/rg"
 )
@@ -103,18 +104,32 @@ func updateQcloud(certOpts *CertOptions, qcloudOpts *QcloudOptions) (err error) 
 			})
 		}
 
-		for {
-			res := rg.Must(client.UpdateCertificateInstance(req))
+		log.Println("Replacing expiring certificate:", expiringCertID, "with new certificate ID:", cloudCertID, req.ToJsonString())
 
-			if *res.Response.DeployRecordId > 0 {
-				break
-			}
-
-			time.Sleep(time.Second * 5)
-		}
-
-		log.Println("Initialized replacing expiring certificate:", expiringCertID, "with new certificate ID:", cloudCertID)
+		rg.Must0(safeQcloudUpdateCertificate(client, req))
 	}
 
 	return
+}
+
+func safeQcloudUpdateCertificate(client *ssl.Client, req *ssl.UpdateCertificateInstanceRequest) error {
+	for {
+		res, err := client.UpdateCertificateInstance(req)
+
+		if err != nil {
+			if qErr, ok := err.(*qcloud_errors.TencentCloudSDKError); ok {
+				if qErr.Code == "FailedOperation.CertificateDeployInstanceEmpty" {
+					log.Println("Ignored Certificate deploy instance empty error")
+					return nil
+				}
+			}
+			return err
+		}
+
+		if *res.Response.DeployRecordId > 0 {
+			return nil
+		}
+
+		time.Sleep(time.Second * 2)
+	}
 }
