@@ -13,8 +13,10 @@ import (
 	cas20200407 "github.com/alibabacloud-go/cas-20200407/v3/client"
 	cdn20180510 "github.com/alibabacloud-go/cdn-20180510/v6/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-
 	"github.com/alibabacloud-go/tea/tea"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
+	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
+	ssl "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl/v20191205"
 	"github.com/yankeguo/rg"
 )
 
@@ -53,14 +55,50 @@ type QcloudOptions struct {
 	SecretKeyFile string `json:"secret_key_file"`
 }
 
+func (opts *QcloudOptions) CreateSslClient() (*ssl.Client, error) {
+	cpf := profile.NewClientProfile()
+	cpf.HttpProfile.Endpoint = "ssl.tencentcloudapi.com"
+
+	return ssl.NewClient(
+		common.NewCredential(
+			opts.SecretID,
+			opts.SecretKey,
+		),
+		"",
+		cpf,
+	)
+}
+
 type CertOptions struct {
-	NamePrefix  string            `json:"name_prefix"`
-	CertPEM     string            `json:"cert_pem"`
-	CertPEMFile string            `json:"cert_pem_file"`
-	KeyPEM      string            `json:"key_pem"`
-	KeyPEMFile  string            `json:"key_pem_file"`
-	Cert        *x509.Certificate `json:"-"`
-	Name        string            `json:"-"`
+	NamePrefix  string `json:"name_prefix"`
+	CertPEM     string `json:"cert_pem"`
+	CertPEMFile string `json:"cert_pem_file"`
+	KeyPEM      string `json:"key_pem"`
+	KeyPEMFile  string `json:"key_pem_file"`
+}
+
+func (opts *CertOptions) CreateCertificate() (cert *x509.Certificate, name string, err error) {
+	defer rg.Guard(&err)
+	block, _ := pem.Decode([]byte(opts.CertPEM))
+	if block == nil || block.Type != "CERTIFICATE" {
+		err = errors.New("invalid cert.cert_pem")
+		return
+	}
+
+	cert = rg.Must(x509.ParseCertificate(block.Bytes))
+
+	if cert.SerialNumber == nil {
+		err = errors.New("cert.cert_pem serial number is nil")
+		return
+	}
+
+	if time.Now().After(cert.NotAfter) {
+		err = errors.New("cert.cert_pem is expired")
+		return
+	}
+
+	name = opts.NamePrefix + "-" + cert.NotAfter.Format("20060102150405")
+	return
 }
 
 type Options struct {
@@ -84,26 +122,6 @@ func LoadOptions(file string) (opts Options, err error) {
 	requireFieldWithFile("cert.cert_pem", &opts.Cert.CertPEM, opts.Cert.CertPEMFile)
 	requireFieldWithFile("cert.key_pem", &opts.Cert.KeyPEM, opts.Cert.KeyPEMFile)
 
-	block, _ := pem.Decode([]byte(opts.Cert.CertPEM))
-	if block == nil || block.Type != "CERTIFICATE" {
-		err = errors.New("invalid cert.cert_pem")
-		return
-	}
-
-	opts.Cert.Cert = rg.Must(x509.ParseCertificate(block.Bytes))
-
-	if opts.Cert.Cert.SerialNumber == nil {
-		err = errors.New("cert.cert_pem serial number is nil")
-		return
-	}
-
-	if time.Now().After(opts.Cert.Cert.NotAfter) {
-		err = errors.New("cert.cert_pem is expired")
-		return
-	}
-
-	opts.Cert.Name = opts.Cert.NamePrefix + "-" + opts.Cert.Cert.NotAfter.Format("20060102150405")
-
 	if opts.Aliyun != nil {
 		requireFieldWithFile("aliyun.access_key_id", &opts.Aliyun.AccessKeyID, opts.Aliyun.AccessKeyIDFile)
 		requireFieldWithFile("aliyun.access_key_secret", &opts.Aliyun.AccessKeySecret, opts.Aliyun.AccessKeySecretFile)
@@ -114,7 +132,6 @@ func LoadOptions(file string) (opts Options, err error) {
 		requireFieldWithFile("qcloud.secret_id", &opts.Qcloud.SecretID, opts.Qcloud.SecretIDFile)
 		requireFieldWithFile("qcloud.secret_key", &opts.Qcloud.SecretKey, opts.Qcloud.SecretKeyFile)
 	}
-
 	return
 }
 

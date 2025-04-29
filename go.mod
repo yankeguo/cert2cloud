@@ -7,6 +7,8 @@ require (
 	github.com/alibabacloud-go/cdn-20180510/v6 v6.0.0
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.1.7
 	github.com/alibabacloud-go/tea v1.3.9
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.1154
+	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl v1.0.1124
 	github.com/yankeguo/rg v1.3.1
 )
 

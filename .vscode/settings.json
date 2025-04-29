@@ -5,6 +5,8 @@
         "aliyuncs",
         "creasty",
         "darabonba",
-        "Qcloud"
+        "Qcloud",
+        "tencentcloud",
+        "tencentcloudapi"
     ]
 }
