@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.1.1 - 2025-04-29
+#### Features
+- update cloud - (6458056) - GUO YANKE
+
+- - -
+
 ## v0.1.0 - 2025-04-29
 #### Features
 - complete date upload - (9922f03) - GUO YANKE
