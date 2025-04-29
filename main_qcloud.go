@@ -84,20 +84,7 @@ func updateQcloud(certOpts *CertOptions, qcloudOpts *QcloudOptions) (err error) 
 	for _, expiringCertID := range expiringCloudCertIDs {
 		req := ssl.NewUpdateCertificateInstanceRequest()
 		req.OldCertificateId = common.StringPtr(expiringCertID)
-		req.ResourceTypes = common.StringPtrs([]string{
-			"clb",
-			"cdn",
-			"waf",
-			"live",
-			"ddos",
-			"teo",
-			"apigateway",
-			"vod",
-			"tke",
-			"tcb",
-			"tse",
-			"cos",
-		})
+		req.ResourceTypes = common.StringPtrs(qcloudOpts.ResourceTypes)
 		req.CertificateId = common.StringPtr(cloudCertID)
 
 		for {

@@ -49,10 +49,11 @@ func (opts *AliyunOptions) CreateCdnClient() (*cdn20180510.Client, error) {
 }
 
 type QcloudOptions struct {
-	SecretID      string `json:"secret_id"`
-	SecretIDFile  string `json:"secret_id_file"`
-	SecretKey     string `json:"secret_key"`
-	SecretKeyFile string `json:"secret_key_file"`
+	SecretID      string   `json:"secret_id"`
+	SecretIDFile  string   `json:"secret_id_file"`
+	SecretKey     string   `json:"secret_key"`
+	SecretKeyFile string   `json:"secret_key_file"`
+	ResourceTypes []string `json:"resource_types"`
 }
 
 func (opts *QcloudOptions) CreateSslClient() (*ssl.Client, error) {
