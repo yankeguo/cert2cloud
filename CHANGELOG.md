@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.1.4 - 2025-04-29
+#### Features
+- add resource_regions for qcloud - (1228b8e) - GUO YANKE
+
+- - -
+
 ## v0.1.3 - 2025-04-29
 #### Features
 - not using name for matching, using domains and end time - (b8ab896) - GUO YANKE
