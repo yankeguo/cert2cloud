@@ -10,65 +10,8 @@ import (
 	"os"
 	"time"
 
-	cas20200407 "github.com/alibabacloud-go/cas-20200407/v3/client"
-	cdn20180510 "github.com/alibabacloud-go/cdn-20180510/v6/client"
-	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-	"github.com/alibabacloud-go/tea/tea"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
-	ssl "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/ssl/v20191205"
 	"github.com/yankeguo/rg"
 )
-
-type AliyunOptions struct {
-	AccessKeyID         string   `json:"access_key_id"`
-	AccessKeyIDFile     string   `json:"access_key_id_file"`
-	AccessKeySecret     string   `json:"access_key_secret"`
-	AccessKeySecretFile string   `json:"access_key_secret_file"`
-	RegionID            string   `json:"region_id"`
-	RegionIDFile        string   `json:"region_id_file"`
-	CDNDomains          []string `json:"cdn_domains"`
-}
-
-func (opts *AliyunOptions) CreateCasClient() (*cas20200407.Client, error) {
-	config := &openapi.Config{
-		AccessKeyId:     tea.String(opts.AccessKeyID),
-		AccessKeySecret: tea.String(opts.AccessKeySecret),
-	}
-	config.Endpoint = tea.String("cas.aliyuncs.com")
-	return cas20200407.NewClient(config)
-}
-
-func (opts *AliyunOptions) CreateCdnClient() (*cdn20180510.Client, error) {
-	config := &openapi.Config{
-		AccessKeyId:     tea.String(opts.AccessKeyID),
-		AccessKeySecret: tea.String(opts.AccessKeySecret),
-	}
-	config.Endpoint = tea.String("cdn.aliyuncs.com")
-	return cdn20180510.NewClient(config)
-}
-
-type QcloudOptions struct {
-	SecretID      string   `json:"secret_id"`
-	SecretIDFile  string   `json:"secret_id_file"`
-	SecretKey     string   `json:"secret_key"`
-	SecretKeyFile string   `json:"secret_key_file"`
-	ResourceTypes []string `json:"resource_types"`
-}
-
-func (opts *QcloudOptions) CreateSslClient() (*ssl.Client, error) {
-	cpf := profile.NewClientProfile()
-	cpf.HttpProfile.Endpoint = "ssl.tencentcloudapi.com"
-
-	return ssl.NewClient(
-		common.NewCredential(
-			opts.SecretID,
-			opts.SecretKey,
-		),
-		"",
-		cpf,
-	)
-}
 
 type CertOptions struct {
 	NamePrefix  string `json:"name_prefix"`
@@ -76,6 +19,12 @@ type CertOptions struct {
 	CertPEMFile string `json:"cert_pem_file"`
 	KeyPEM      string `json:"key_pem"`
 	KeyPEMFile  string `json:"key_pem_file"`
+}
+
+func (opts *CertOptions) Validate() {
+	requireField("cert.name_prefix", &opts.NamePrefix)
+	requireFieldWithFile("cert.cert_pem", &opts.CertPEM, opts.CertPEMFile)
+	requireFieldWithFile("cert.key_pem", &opts.KeyPEM, opts.KeyPEMFile)
 }
 
 func (opts *CertOptions) CreateCertificate() (cert *x509.Certificate, name string, err error) {
@@ -119,19 +68,14 @@ func LoadOptions(file string) (opts Options, err error) {
 		return
 	}
 
-	requireField("cert.name_prefix", &opts.Cert.NamePrefix)
-	requireFieldWithFile("cert.cert_pem", &opts.Cert.CertPEM, opts.Cert.CertPEMFile)
-	requireFieldWithFile("cert.key_pem", &opts.Cert.KeyPEM, opts.Cert.KeyPEMFile)
+	opts.Cert.Validate()
 
 	if opts.Aliyun != nil {
-		requireFieldWithFile("aliyun.access_key_id", &opts.Aliyun.AccessKeyID, opts.Aliyun.AccessKeyIDFile)
-		requireFieldWithFile("aliyun.access_key_secret", &opts.Aliyun.AccessKeySecret, opts.Aliyun.AccessKeySecretFile)
-		requireFieldWithFile("aliyun.region_id", &opts.Aliyun.RegionID, opts.Aliyun.RegionIDFile)
+		opts.Aliyun.Validate()
 	}
 
 	if opts.Qcloud != nil {
-		requireFieldWithFile("qcloud.secret_id", &opts.Qcloud.SecretID, opts.Qcloud.SecretIDFile)
-		requireFieldWithFile("qcloud.secret_key", &opts.Qcloud.SecretKey, opts.Qcloud.SecretKeyFile)
+		opts.Qcloud.Validate()
 	}
 	return
 }
